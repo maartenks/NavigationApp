@@ -38,4 +38,26 @@
         app:layout_constraintTop_toTopOf="@+id/dropdown_Spinner"
         app:srcCompat="@drawable/ic_menu_black" />
 
+    <ImageButton
+        android:id="@+id/add_waypoint_button"
+        android:layout_width="69dp"
+        android:layout_height="69dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.953"
+        app:layout_constraintStart_toStartOf="@+id/google_map"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.975"
+        app:srcCompat="@drawable/ic_round_button" />
+
+    <ImageView
+        android:id="@+id/img_plus"
+        android:layout_width="29dp"
+        android:layout_height="29dp"
+        app:layout_constraintBottom_toBottomOf="@+id/add_waypoint_button"
+        app:layout_constraintEnd_toEndOf="@+id/add_waypoint_button"
+        app:layout_constraintStart_toStartOf="@+id/add_waypoint_button"
+        app:layout_constraintTop_toTopOf="@+id/add_waypoint_button"
+        app:srcCompat="@drawable/ic_add_black_24dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

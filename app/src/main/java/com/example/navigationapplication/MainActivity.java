@@ -9,7 +9,9 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 import com.example.navigationapplication.data.DropdownItem;
+import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.ItemAdapter;
+import com.example.navigationapplication.logic.JsonParser;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -24,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     Spinner dropDownSpinner;
     private ArrayList<DropdownItem> dropdownItems;
+    private ArrayList<Waypoint> waypoints;
     private MapView mapView;
     private ItemAdapter adapter;
     @Override
@@ -32,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         initList();
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
+
+        waypoints = new ArrayList<>();
 
         adapter = new ItemAdapter(this, dropdownItems);
         dropDownSpinner.setAdapter(adapter);
@@ -44,6 +49,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView.onCreate(mapViewBundle);
 
         mapView.getMapAsync(this);
+    }
+
+    public void buildWaypoint (GoogleMap googleMap){
+        JsonParser jsonParser = new JsonParser();
+
+        waypoints = jsonParser.parseFile(jsonParser.loadJSONFromAsset(this, "JsonLocations"));
+
+        for(Waypoint waypoint : waypoints){
+            LatLng coords = waypoint.getLocation();
+            googleMap.addMarker(new MarkerOptions().position(coords).title(waypoint.getName()));
+        }
     }
 
     public void onSaveInstanceState(Bundle outState) {
