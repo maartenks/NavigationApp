@@ -1,10 +1,15 @@
 package com.example.navigationapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<Waypoint> waypoints;
     private MapView mapView;
     private ItemAdapter adapter;
+    private ImageButton addWaypoint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +42,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         initList();
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
 
+        addWaypoint = findViewById(R.id.add_waypoint_button);
+
+        addWaypoint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MenuFragment menuFragment = new MenuFragment();
+                menuFragment.show(getSupportFragmentManager(), "Menu Fragment");
+            }
+        });
         waypoints = new ArrayList<>();
 
         adapter = new ItemAdapter(this, dropdownItems);
