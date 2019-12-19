@@ -14,6 +14,11 @@ import java.util.ArrayList;
 
 public class JsonParser {
 
+    private Context context;
+
+    public JsonParser(Context context) {
+        this.context = context;
+    }
     public String loadJSONFromAsset(Context context, String file) {
         String json = null;
         try {
@@ -33,6 +38,7 @@ public class JsonParser {
 
     public ArrayList<Waypoint> parseFile(String JSONstring) {
         ArrayList<Waypoint> waypoints = new ArrayList<>();
+        SharedPreferenceManager sharedPreferenceManager = SharedPreferenceManager.getInstance(context);
         try {
             JSONArray obj = new JSONArray(JSONstring);
             for (int i = 0; i < obj.length(); i++) {
@@ -45,11 +51,17 @@ public class JsonParser {
                 String colorHex = obj.getJSONObject(i).getString("colorHex");
                 int color = Color.parseColor(colorHex);
                 boolean isFavorite = obj.getJSONObject(i).getBoolean("isFavorite");
-                waypoints.add(new Waypoint(name, position, streetname, color, isFavorite));
+                Waypoint waypoint = new Waypoint(name, position, streetname, color, isFavorite);
+                waypoint.setFavorite(sharedPreferenceManager.getIsFavourite(waypoint));
+                waypoints.add(waypoint);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return waypoints;
+    }
+
+    public void addWaypoint(Waypoint waypoint) {
+
     }
 }

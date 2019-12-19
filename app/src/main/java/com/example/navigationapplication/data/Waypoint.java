@@ -17,7 +17,6 @@ public class Waypoint {
         this.streetName = streetName;
         this.color = color;
         this.isFavorite = isFavorite;
-
     }
 
     public String getName() {

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -17,12 +18,10 @@ public class MenuFragment extends AppCompatDialogFragment {
 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.fragment_pop_up_fragment, null);
 
         builder.setView(view);
-
         return builder.create();
     }
 
@@ -32,7 +31,7 @@ public class MenuFragment extends AppCompatDialogFragment {
         try {
             listener = (MenuFragmentListener) context;
         } catch (Exception e) {
-
+            Log.d("Error", e.getMessage());
         }
     }
 

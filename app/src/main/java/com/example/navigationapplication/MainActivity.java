@@ -1,11 +1,17 @@
 package com.example.navigationapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.app.Dialog;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -17,12 +23,22 @@ import com.example.navigationapplication.data.DropdownItem;
 import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.ItemAdapter;
 import com.example.navigationapplication.logic.JsonParser;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 
@@ -30,20 +46,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     Spinner dropDownSpinner;
+
     private ArrayList<DropdownItem> dropdownItems;
     private ArrayList<Waypoint> waypoints;
+
+    private GoogleMap googleMap;
     private MapView mapView;
+
+    private FusedLocationProviderClient fushedLocationProviderClient;
+    private LocationCallback locationCallback;
+
     private ItemAdapter adapter;
     private ImageButton addWaypoint;
+
+    private Polyline polyline;
+
+    Location currentLocation;
+    Marker currLocationMarker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initList();
+        waypoints = new ArrayList<>();
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
+        adapter = new ItemAdapter(this, dropdownItems);
+        dropDownSpinner.setAdapter(adapter);
 
         addWaypoint = findViewById(R.id.add_waypoint_button);
-
         addWaypoint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,23 +81,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 menuFragment.show(getSupportFragmentManager(), "Menu Fragment");
             }
         });
-        waypoints = new ArrayList<>();
-
-        adapter = new ItemAdapter(this, dropdownItems);
-        dropDownSpinner.setAdapter(adapter);
 
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
-        mapView = (MapView) findViewById(R.id.google_map);
+        mapView = findViewById(R.id.google_map);
         mapView.onCreate(mapViewBundle);
-
         mapView.getMapAsync(this);
+
+        checkLocationPremissions();
     }
 
     public void buildWaypoint (GoogleMap googleMap){
-        JsonParser jsonParser = new JsonParser();
+        JsonParser jsonParser = new JsonParser(this);
 
         waypoints = jsonParser.parseFile(jsonParser.loadJSONFromAsset(this, "JsonLocations"));
 
@@ -75,6 +102,78 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng coords = waypoint.getLocation();
             googleMap.addMarker(new MarkerOptions().position(coords).title(waypoint.getName()));
         }
+    }
+
+    private boolean hasLocationAccess()
+    {
+        boolean courceLocationAccess = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean fineLocationAccess = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        return (courceLocationAccess && fineLocationAccess);
+    }
+
+
+
+    private void setupLocationServices()
+    {
+        this.fushedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(5000).setFastestInterval(5000).setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        this.locationCallback = new LocationCallback()
+        {
+            @Override
+            public void onLocationResult(LocationResult locationResult)
+            {
+                if (locationResult == null)
+                {
+                    return;
+                }
+                for (Location location : locationResult.getLocations())
+                {
+                    if (location != null)
+                    {
+                        Log.d("locationUpdate", location.getLatitude() + " : " + location.getLongitude());
+                    }
+                }
+            }
+        };
+        this.fushedLocationProviderClient.requestLocationUpdates(locationRequest, this.locationCallback, Looper.myLooper());
+    }
+
+    public void addMarker(Waypoint waypoint)
+    {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title(waypoint.getName());
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        currLocationMarker = googleMap.addMarker(markerOptions);
+
+    }
+
+    public void drawRoute(Waypoint waypoint) {
+        if ( mapView == null )
+        {
+            return;
+        }
+        PolylineOptions options = new PolylineOptions();
+
+        options.color( Color.parseColor( "#CC0000FF" ) );
+        options.width( 5 );
+        options.visible( true );
+        options.add(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+        options.add(new LatLng(waypoint.getLocation().latitude, waypoint.getLocation().longitude));
+
+        this.polyline = googleMap.addPolyline(options);
+    }
+
+    private void checkLocationPremissions()
+    {
+        if (!hasLocationAccess())
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+        else
+            setupLocationServices();
     }
 
     public void onSaveInstanceState(Bundle outState) {
@@ -133,9 +232,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        this.googleMap = googleMap;
+        buildWaypoint(this.googleMap);
+        if(hasLocationAccess()) {
+            this.googleMap.setMyLocationEnabled(true);
+        }
     }
 }
