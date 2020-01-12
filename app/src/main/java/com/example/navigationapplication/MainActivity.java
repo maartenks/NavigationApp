@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 
@@ -103,6 +105,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 MenuFragment menuFragment = new MenuFragment();
                 menuFragment.setArguments(bundle);
                 menuFragment.show(getSupportFragmentManager(), "Menu Fragment");
+            }
+        });
+
+        dropDownSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = dropDownSpinner.getSelectedItem().toString();
+                switch (position) {
+                    case 0:
+
+                        break;
+
+                    case 1:
+                        Intent intent = new Intent(MainActivity.this, WaypointsActivity.class);
+                        view.getContext().startActivity(intent);
+                        break;
+
+                    case 2:
+
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                dropDownSpinner.getSelectedItem();
             }
         });
     }

@@ -34,7 +34,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
     @Override
     public void onBindViewHolder(ItemViewHolder viewHolder, int i){
         final Waypoint wp = dataset.get(i);
-
+        viewHolder.name.setText(wp.getName());
+        viewHolder.street.setText(wp.getStreetName());
 
     }
 
