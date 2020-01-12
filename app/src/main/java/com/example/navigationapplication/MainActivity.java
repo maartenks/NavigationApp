@@ -4,32 +4,27 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Spinner;
 
 import com.example.navigationapplication.data.DropdownItem;
 import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.ItemAdapter;
 import com.example.navigationapplication.logic.JsonParser;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -40,7 +35,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -49,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ArrayList<DropdownItem> dropdownItems;
     private ArrayList<Waypoint> waypoints;
+    private ArrayList<Marker> markers;
 
     private GoogleMap googleMap;
     private MapView mapView;
@@ -58,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ItemAdapter adapter;
     private ImageButton addWaypoint;
+    private Geocoder geocoder;
 
     private Polyline polyline;
 
@@ -69,18 +69,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         initList();
         waypoints = new ArrayList<>();
+        markers = new ArrayList<>();
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
         adapter = new ItemAdapter(this, dropdownItems);
         dropDownSpinner.setAdapter(adapter);
 
         addWaypoint = findViewById(R.id.add_waypoint_button);
-        addWaypoint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MenuFragment menuFragment = new MenuFragment();
-                menuFragment.show(getSupportFragmentManager(), "Menu Fragment");
-            }
-        });
+
 
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
@@ -91,16 +86,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView.getMapAsync(this);
 
         checkLocationPremissions();
+        geocoder = new Geocoder(this, Locale.getDefault());
+
+        addWaypoint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                try {
+                    bundle.putString("LatLng", currentLocation.toString());
+                    List<Address> addresses = geocoder.getFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+                    bundle.putString("Streetname", addresses.get(0).getThoroughfare());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                MenuFragment menuFragment = new MenuFragment();
+                menuFragment.setArguments(bundle);
+                menuFragment.show(getSupportFragmentManager(), "Menu Fragment");
+            }
+        });
     }
 
-    public void buildWaypoint (GoogleMap googleMap){
+    public void buildWaypoint (GoogleMap googleMap) {
         JsonParser jsonParser = new JsonParser(this);
 
-        waypoints = jsonParser.parseFile(jsonParser.loadJSONFromAsset(this, "JsonLocations"));
+        waypoints = jsonParser.parseFile(jsonParser.loadJSONFromAsset());
 
-        for(Waypoint waypoint : waypoints){
+        for (Waypoint waypoint : waypoints) {
             LatLng coords = waypoint.getLocation();
-            googleMap.addMarker(new MarkerOptions().position(coords).title(waypoint.getName()));
+            Marker marker = googleMap.addMarker(new MarkerOptions().position(coords).title(waypoint.getName()));
+            markers.add(marker);
         }
     }
 
@@ -133,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 {
                     if (location != null)
                     {
+                        currentLocation = location;
                         Log.d("locationUpdate", location.getLatitude() + " : " + location.getLongitude());
                     }
                 }
@@ -152,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void drawRoute(Waypoint waypoint) {
+    public void drawRoute(Marker marker) {
         if ( mapView == null )
         {
             return;
@@ -163,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         options.width( 5 );
         options.visible( true );
         options.add(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-        options.add(new LatLng(waypoint.getLocation().latitude, waypoint.getLocation().longitude));
+        options.add(new LatLng(marker.getPosition().latitude, marker.getPosition().longitude));
 
         this.polyline = googleMap.addPolyline(options);
     }
@@ -237,5 +253,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(hasLocationAccess()) {
             this.googleMap.setMyLocationEnabled(true);
         }
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                for (Marker mark : markers) {
+                    if (mark.equals(marker)) {
+                        drawRoute(mark);
+                    }
+                }
+                return false;
+            }
+        });
     }
 }
