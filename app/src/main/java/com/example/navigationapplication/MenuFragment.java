@@ -38,6 +38,7 @@ public class MenuFragment extends AppCompatDialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.fragment_pop_up_fragment, null);
         final String streetname = getArguments().getString("Streetname");
+        Log.d("Streetname", streetname + " is streetname");
         String[] getLocation = getArguments().getString("LatLng").split(" ");
         String[] latlng = getLocation[1].split(",");
         double latitude = Double.parseDouble(latlng[0]);
@@ -56,8 +57,15 @@ public class MenuFragment extends AppCompatDialogFragment {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Waypoint newWaypoint = new Waypoint(name.toString(), location, streetname, 20,  isFav);
-                jsonParser.AddWaypoint(newWaypoint);
+                if (streetname == "null") {
+                    Waypoint newWaypoint = new Waypoint(name.getText().toString(), location, streetname, 20, isFav);
+                    jsonParser.AddWaypoint(newWaypoint);
+                    ((MainActivity)getActivity()).buildWaypoint();
+                } else {
+                    Waypoint newWaypoint = new Waypoint(name.getText().toString(), location, "Not known", 20, isFav);
+                    jsonParser.AddWaypoint(newWaypoint);
+                    ((MainActivity)getActivity()).buildWaypoint();
+                }
                 getFragmentManager().beginTransaction().remove(MenuFragment.this).commit();
             }
         });

@@ -54,7 +54,7 @@ public class JsonParser {
             file.mkdir();
         }
         Log.d("Does it exist? ", String.valueOf(file.exists()));
-        File mypath = new File(file.getAbsolutePath(), "newLocations.json");
+        File mypath = new File(file.getAbsolutePath(), "JsonLocations.json");
         Log.d("Does it exist", String.valueOf(mypath.exists()));
         try {
             if (!mypath.exists()) {
@@ -76,8 +76,8 @@ public class JsonParser {
                 for (int i = 0; i < obj.length(); i++) {
                     String name = obj.getJSONObject(i).getString("name");
                     LatLng position = new LatLng(
-                            obj.getJSONObject(i).getJSONObject("coordinates").getInt("lat"),
-                            obj.getJSONObject(i).getJSONObject("coordinates").getInt("lng")
+                            obj.getJSONObject(i).getJSONObject("coordinates").getDouble("lat"),
+                            obj.getJSONObject(i).getJSONObject("coordinates").getDouble("lng")
                     );
                     String streetname = obj.getJSONObject(i).getString("streetName");
                     String colorHex = obj.getJSONObject(i).getString("colorHex");
@@ -100,7 +100,7 @@ public class JsonParser {
 
             JSONArray array = new JSONArray();
             if (loadJSONFromAsset() != null && !loadJSONFromAsset().equals("")) {
-                array.put(loadJSONFromAsset());
+                array = new JSONArray(loadJSONFromAsset());
             }
             JSONObject waypoints = new JSONObject();
             JSONObject latlng = new JSONObject();

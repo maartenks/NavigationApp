@@ -54,15 +54,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap googleMap;
     private MapView mapView;
 
-    private FusedLocationProviderClient fushedLocationProviderClient;
-    private LocationCallback locationCallback;
-
-    private ItemAdapter adapter;
-    private ImageButton addWaypoint;
-    private Geocoder geocoder;
-
-    private Polyline polyline;
-
     Location currentLocation;
     Marker currLocationMarker;
     @Override
@@ -73,10 +64,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         waypoints = new ArrayList<>();
         markers = new ArrayList<>();
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
-        adapter = new ItemAdapter(this, dropdownItems);
+        ItemAdapter adapter = new ItemAdapter(this, dropdownItems);
         dropDownSpinner.setAdapter(adapter);
 
-        addWaypoint = findViewById(R.id.add_waypoint_button);
+        ImageButton addWaypoint = findViewById(R.id.add_waypoint_button);
 
 
         Bundle mapViewBundle = null;
@@ -88,19 +79,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView.getMapAsync(this);
 
         checkLocationPremissions();
-        geocoder = new Geocoder(this, Locale.getDefault());
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         addWaypoint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bundle bundle = new Bundle();
-                try {
-                    bundle.putString("LatLng", currentLocation.toString());
-                    List<Address> addresses = geocoder.getFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
-                    bundle.putString("Streetname", addresses.get(0).getThoroughfare());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                  Bundle bundle = new Bundle();
+//                try {
+                     bundle.putString("LatLng", currentLocation.toString());
+//                    List<Address> addresses = geocoder.getFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 1);
+//                        bundle.putString("Streetname", addresses.get(0).getThoroughfare());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
                 MenuFragment menuFragment = new MenuFragment();
                 menuFragment.setArguments(bundle);
@@ -111,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dropDownSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = dropDownSpinner.getSelectedItem().toString();
                 switch (position) {
                     case 0:
 
@@ -120,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     case 1:
                         Intent intent = new Intent(MainActivity.this, WaypointsActivity.class);
                         view.getContext().startActivity(intent);
+                        parent.setSelection(0);
                         break;
 
                     case 2:
@@ -135,13 +126,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    public void buildWaypoint (GoogleMap googleMap) {
+    public void buildWaypoint () {
         JsonParser jsonParser = new JsonParser(this);
 
         waypoints = jsonParser.parseFile(jsonParser.loadJSONFromAsset());
 
         for (Waypoint waypoint : waypoints) {
             LatLng coords = waypoint.getLocation();
+            Log.d("Location", coords.toString());
             Marker marker = googleMap.addMarker(new MarkerOptions().position(coords).title(waypoint.getName()));
             markers.add(marker);
         }
@@ -159,41 +151,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setupLocationServices()
     {
-        this.fushedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        FusedLocationProviderClient fushedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(5000).setFastestInterval(5000).setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-        this.locationCallback = new LocationCallback()
-        {
+        LocationCallback locationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult)
-            {
-                if (locationResult == null)
-                {
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
                     return;
                 }
-                for (Location location : locationResult.getLocations())
-                {
-                    if (location != null)
-                    {
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
                         currentLocation = location;
                         Log.d("locationUpdate", location.getLatitude() + " : " + location.getLongitude());
                     }
                 }
             }
         };
-        this.fushedLocationProviderClient.requestLocationUpdates(locationRequest, this.locationCallback, Looper.myLooper());
-    }
-
-    public void addMarker(Waypoint waypoint)
-    {
-        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title(waypoint.getName());
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        currLocationMarker = googleMap.addMarker(markerOptions);
-
+        fushedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
     }
 
     public void drawRoute(Marker marker) {
@@ -209,7 +185,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         options.add(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
         options.add(new LatLng(marker.getPosition().latitude, marker.getPosition().longitude));
 
-        this.polyline = googleMap.addPolyline(options);
+        Polyline polyline = googleMap.addPolyline(options);
+    }
+
+    public void clearRoute() {
+       googleMap.clear();
+       buildWaypoint();
+
     }
 
     private void checkLocationPremissions()
@@ -277,18 +259,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        buildWaypoint(this.googleMap);
+        buildWaypoint();
         if(hasLocationAccess()) {
             this.googleMap.setMyLocationEnabled(true);
         }
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                for (Marker mark : markers) {
-                    if (mark.equals(marker)) {
-                        drawRoute(mark);
-                    }
-                }
+                        clearRoute();
+                        drawRoute(marker);
+                        marker.showInfoWindow();
                 return false;
             }
         });
