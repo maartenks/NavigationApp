@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">navigationApplication</string>
+    <string name="cancel">annuleer</string>
+    <string name="color">kleur</string>
+    <string name="markFavorite">favoriet</string>
+    <string name="name">naam</string>
+    <string name="save">opslaan</string>
+    <string name="street">straatnaam</string>
+    <string name="search"> zoek</string>
+    <string name="language"> Engels - Nederlands</string>
+</resources>
