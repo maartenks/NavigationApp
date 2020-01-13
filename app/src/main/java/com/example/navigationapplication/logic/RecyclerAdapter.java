@@ -1,6 +1,7 @@
 package com.example.navigationapplication.logic;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +58,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
             name = itemview.findViewById(R.id.waypoint_name);
             street = itemview.findViewById(R.id.waypoint_street);
             favorite = itemview.findViewById(R.id.waypoint_favorite);
-        }
 
+            favorite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v){
+                    favorite.setBackgroundResource(R.drawable.ic_star_black_24dp);
+                }
+            });
+        }
     }
 }

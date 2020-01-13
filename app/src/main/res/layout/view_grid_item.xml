@@ -28,14 +28,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/waypoint_favorite"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        app:layout_constraintBottom_toBottomOf="@+id/waypoint_street"
+        android:layout_width="68dp"
+        android:layout_height="71dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.95"
-        app:layout_constraintStart_toEndOf="@+id/waypoint_name"
+        app:layout_constraintHorizontal_bias="0.945"
+        app:layout_constraintStart_toEndOf="@+id/waypoint_street"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_star_border_black_24dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
