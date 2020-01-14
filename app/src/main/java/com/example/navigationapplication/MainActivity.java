@@ -6,9 +6,6 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -20,6 +17,8 @@ import android.widget.Spinner;
 
 import com.example.navigationapplication.data.DropdownItem;
 import com.example.navigationapplication.data.Waypoint;
+import com.example.navigationapplication.logic.DirectionsAPIListener;
+import com.example.navigationapplication.logic.DirectionsAPIManager;
 import com.example.navigationapplication.logic.ItemAdapter;
 import com.example.navigationapplication.logic.JsonParser;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -27,22 +26,20 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, DirectionsAPIListener {
 
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     Spinner dropDownSpinner;
@@ -50,19 +47,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<DropdownItem> dropdownItems;
     private ArrayList<Waypoint> waypoints;
     private ArrayList<Marker> markers;
+    private DirectionsAPIManager directionsAPIManager;
 
     private GoogleMap googleMap;
     private MapView mapView;
+    private Polyline polyline;
 
     Location currentLocation;
-    Marker currLocationMarker;
+    private ArrayList<LatLng> locations;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initList();
         waypoints = new ArrayList<>();
+        locations = new ArrayList<>();
         markers = new ArrayList<>();
+        directionsAPIManager = new DirectionsAPIManager(getApplicationContext(), this);
+
         dropDownSpinner = findViewById(R.id.dropdown_Spinner);
         ItemAdapter adapter = new ItemAdapter(this, dropdownItems);
         dropDownSpinner.setAdapter(adapter);
@@ -79,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView.getMapAsync(this);
 
         checkLocationPremissions();
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         addWaypoint.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,26 +174,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fushedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
     }
 
-    public void drawRoute(Marker marker) {
-        if ( mapView == null )
-        {
-            return;
-        }
-        PolylineOptions options = new PolylineOptions();
-
-        options.color( Color.parseColor( "#CC0000FF" ) );
-        options.width( 5 );
-        options.visible( true );
-        options.add(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-        options.add(new LatLng(marker.getPosition().latitude, marker.getPosition().longitude));
-
-        Polyline polyline = googleMap.addPolyline(options);
-    }
-
-    public void clearRoute() {
-       googleMap.clear();
-       buildWaypoint();
-
+    public void drawRoute(Waypoint waypoint) {
+        this.directionsAPIManager.requestRoute(currentLocation, waypoint);
     }
 
     private void checkLocationPremissions()
@@ -266,11 +250,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                        clearRoute();
-                        drawRoute(marker);
+                for (Waypoint waypoint: waypoints) {
+                    Log.d("Marker", marker.getTitle());
+                    if (marker.getTitle().equals(waypoint.getName())) {
+                        drawRoute(waypoint);
                         marker.showInfoWindow();
-                return false;
+                    }
+                }
+                return true;
             }
         });
+    }
+
+    @Override
+    public void onRouteAvailable(ArrayList<LatLng> locations) {
+        this.googleMap.clear();
+        buildWaypoint();
+        this.locations.clear();
+        this.locations.addAll(locations);
+        this.polyline = this.googleMap.addPolyline(new PolylineOptions().clickable(false).addAll(locations));
+
     }
 }
