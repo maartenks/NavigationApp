@@ -36,6 +36,6 @@
         app:layout_constraintEnd_toEndOf="@+id/image_item"
         app:layout_constraintStart_toStartOf="@+id/image_item"
         app:layout_constraintTop_toTopOf="@+id/image_item"
-        app:srcCompat="@drawable/ic_menu_black" />
+        app:srcCompat="@android:drawable/status_bar_item_app_background" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

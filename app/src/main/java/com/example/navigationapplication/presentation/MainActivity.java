@@ -1,4 +1,4 @@
-package com.example.navigationapplication;
+package com.example.navigationapplication.presentation;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 
+import com.example.navigationapplication.R;
 import com.example.navigationapplication.data.DropdownItem;
 import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.DirectionsAPIListener;
@@ -26,12 +27,10 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -51,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap googleMap;
     private MapView mapView;
-    private Polyline polyline;
 
     Location currentLocation;
     private ArrayList<LatLng> locations;
@@ -120,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 dropDownSpinner.getSelectedItem();
@@ -148,8 +145,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         return (courceLocationAccess && fineLocationAccess);
     }
-
-
 
     private void setupLocationServices()
     {
@@ -251,10 +246,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(Marker marker) {
                 for (Waypoint waypoint: waypoints) {
-                    Log.d("Marker", marker.getTitle());
                     if (marker.getTitle().equals(waypoint.getName())) {
-                        drawRoute(waypoint);
                         marker.showInfoWindow();
+                        drawRoute(waypoint);
                     }
                 }
                 return true;
@@ -268,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         buildWaypoint();
         this.locations.clear();
         this.locations.addAll(locations);
-        this.polyline = this.googleMap.addPolyline(new PolylineOptions().clickable(false).addAll(locations));
-
+        Polyline polyline = this.googleMap.addPolyline(new PolylineOptions().clickable(false).addAll(locations));
     }
 }

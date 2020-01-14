@@ -19,8 +19,10 @@ import java.util.ArrayList;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
 
     private ArrayList<Waypoint> dataset;
+    private SharedPreferenceManager sharedPreferenceManager;
 
     public RecyclerAdapter(Context context, ArrayList dataset){
+        this.sharedPreferenceManager = new SharedPreferenceManager(context);
         this.dataset = dataset;
     }
 
@@ -33,10 +35,27 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
     }
 
     @Override
-    public void onBindViewHolder(ItemViewHolder viewHolder, int i){
+    public void onBindViewHolder(final ItemViewHolder viewHolder, int i){
         final Waypoint wp = dataset.get(i);
         viewHolder.name.setText(wp.getName());
         viewHolder.street.setText(wp.getStreetName());
+        if (!sharedPreferenceManager.getIsFavourite(wp)) {
+            viewHolder.favorite.setBackgroundResource(R.drawable.ic_star_border_black_24dp);
+        } else {
+            viewHolder.favorite.setBackgroundResource(R.drawable.ic_star_black_24dp);
+        }
+        viewHolder.favorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sharedPreferenceManager.getIsFavourite(wp)) {
+                    sharedPreferenceManager.setIsFavourite(wp, false);
+                    viewHolder.favorite.setBackgroundResource(R.drawable.ic_star_border_black_24dp);
+                } else {
+                    sharedPreferenceManager.setIsFavourite(wp, true);
+                    viewHolder.favorite.setBackgroundResource(R.drawable.ic_star_black_24dp);
+                }
+            }
+        });
 
     }
 
@@ -58,13 +77,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
             name = itemview.findViewById(R.id.waypoint_name);
             street = itemview.findViewById(R.id.waypoint_street);
             favorite = itemview.findViewById(R.id.waypoint_favorite);
-
-            favorite.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v){
-                    favorite.setBackgroundResource(R.drawable.ic_star_black_24dp);
-                }
-            });
         }
     }
 }

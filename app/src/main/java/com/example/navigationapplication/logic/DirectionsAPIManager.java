@@ -43,13 +43,13 @@ public class DirectionsAPIManager implements Response.Listener, Response.ErrorLi
     public void requestRoute(Location currentLocation, Waypoint waypoint)
     {
         this.locations.clear();
-        sendRequest(Request.Method.GET, getUrlForWaypoints(currentLocation, waypoint));
+        sendRequest(getUrlForWaypoints(currentLocation, waypoint));
     }
 
-    private void sendRequest(int method, String url)
+    private void sendRequest(String url)
     {
-        JsonRequest jsonRequest = new JsonObjectRequest(method, url, null, this, this);
-        //jsonRequest.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        JsonRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, this, this);
+        //jsonRequest.setRetryPolicy(new DefaultRetryPolicy(1000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         this.requestQueue.add(jsonRequest);
     }
 
@@ -60,7 +60,6 @@ public class DirectionsAPIManager implements Response.Listener, Response.ErrorLi
                     + "&destination=" + waypoint.getLocation().latitude + "," + waypoint.getLocation().longitude
                     + "&mode=walking"
                     + "&key=" + this.context.getResources().getString(R.string.google_directions_key);
-
         return url;
     }
 
@@ -101,6 +100,6 @@ public class DirectionsAPIManager implements Response.Listener, Response.ErrorLi
     @Override
     public void onErrorResponse(VolleyError error)
     {
-
+        Log.d("Error", error.toString());
     }
 }

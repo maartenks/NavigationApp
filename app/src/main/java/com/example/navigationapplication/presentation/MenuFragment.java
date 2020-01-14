@@ -1,12 +1,8 @@
-package com.example.navigationapplication;
+package com.example.navigationapplication.presentation;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,8 +12,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatDialogFragment;
-import androidx.core.content.res.ResourcesCompat;
 
+import com.example.navigationapplication.R;
 import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.JsonParser;
 import com.google.android.gms.maps.model.LatLng;
@@ -73,7 +69,7 @@ public class MenuFragment extends AppCompatDialogFragment {
         favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (favorite.getDrawable() == ResourcesCompat.getDrawable(getResources(), R.drawable.ic_star_border_black_24dp, null)) {
+                if (!isFav) {
                     isFav = true;
                     favorite.setImageResource(R.drawable.ic_star_black_24dp);
                 } else {

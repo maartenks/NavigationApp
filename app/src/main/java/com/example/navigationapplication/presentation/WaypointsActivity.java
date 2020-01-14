@@ -1,4 +1,4 @@
-package com.example.navigationapplication;
+package com.example.navigationapplication.presentation;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.navigationapplication.R;
 import com.example.navigationapplication.data.Waypoint;
 import com.example.navigationapplication.logic.JsonParser;
 import com.example.navigationapplication.logic.RecyclerAdapter;

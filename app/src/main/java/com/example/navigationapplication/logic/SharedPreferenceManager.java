@@ -12,7 +12,7 @@ public class SharedPreferenceManager
     private static SharedPreferenceManager insance;
     public Context context;
 
-    private SharedPreferenceManager(Context context)
+    public SharedPreferenceManager(Context context)
     {
         this.context = context;
     }
